@@ -27,7 +27,7 @@ def test_health_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
-    assert data["platforms_count"] >= 5
+    assert data["platforms_count"] >= 4
     assert isinstance(data["platforms"], list)
 
 
@@ -46,7 +46,7 @@ def test_posting_endpoint_default_unconfigured():
 
     assert "success" in data
     assert "results" in data
-    assert len(data["results"]) >= 5
+    assert len(data["results"]) >= 4
 
     # Verify each platform result conforms to schema
     for res in data["results"]:
@@ -80,7 +80,7 @@ def test_posting_endpoint_simulation_mode():
         data = response.json()
 
         assert data["success"] is True
-        assert len(data["results"]) >= 5
+        assert len(data["results"]) >= 4
 
         for res in data["results"]:
             assert res["status"] == "success"

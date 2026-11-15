@@ -48,11 +48,6 @@ class Settings(BaseSettings):
     twitter_access_token: Optional[str] = None
     twitter_access_token_secret: Optional[str] = None
 
-    # 5. Slack
-    slack_webhook_url: Optional[str] = None
-    slack_bot_token: Optional[str] = None
-    slack_channel: Optional[str] = None
-
 
 @lru_cache()
 def get_settings() -> Settings:

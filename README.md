@@ -3,7 +3,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![Pydantic v2](https://img.shields.io/badge/Pydantic-2.5.3-E92063.svg)](https://docs.pydantic.dev/)
-[![Tests](https://img.shields.io/badge/tests-33%20passed%20%7C%2092%25%20coverage-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-31%20passed%20%7C%2092%25%20coverage-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 
 A high-performance, asynchronous Python service built with **FastAPI** that automatically publishes short promotional and marketing messages across multiple third-party social networks, messaging portals, and developer communities via their official REST APIs.
@@ -43,20 +43,17 @@ flowchart TD
         Service -->|asyncio.gather| P2[DiscordPlatform]
         Service -->|asyncio.gather| P3[MastodonPlatform]
         Service -->|asyncio.gather| P4[Twitter / X Platform]
-        Service -->|asyncio.gather| P5[SlackPlatform]
     end
 
     P1 -->|POST /sendMessage| TelegramAPI[(Telegram Bot API)]
     P2 -->|POST /webhooks| DiscordAPI[(Discord Webhook API)]
     P3 -->|POST /api/v1/statuses| MastodonAPI[(Mastodon REST API)]
     P4 -->|POST /2/tweets| TwitterAPI[(Twitter / X API v2)]
-    P5 -->|POST /chat.postMessage| SlackAPI[(Slack Webhook / Web API)]
 
     P1 -.-> Aggregator[Results Aggregator]
     P2 -.-> Aggregator
     P3 -.-> Aggregator
     P4 -.-> Aggregator
-    P5 -.-> Aggregator
 
     Aggregator -->|PostingResponse JSON| Client
 ```
@@ -70,7 +67,7 @@ flowchart TD
 
 ## 2. Platform Research & API Integrations
 
-The service integrates **5 major third-party platforms**:
+The service integrates **4 major third-party platforms**:
 
 | Platform | Official API Documentation | Authentication Method | Endpoint Used | Public Access |
 |---|---|---|---|---|
@@ -78,7 +75,6 @@ The service integrates **5 major third-party platforms**:
 | **Discord** | [Discord Webhook Docs](https://discord.com/developers/docs/resources/webhook#execute-webhook) | Webhook URL Token | `POST https://discord.com/api/webhooks/<id>/<token>?wait=true` | `false` (internal channel permissions) |
 | **Mastodon** | [Mastodon API v1](https://docs.joinmastodon.org/methods/statuses/#create) | Bearer Token (OAuth2) | `POST https://<instance>/api/v1/statuses` | `true` (public federated timeline) |
 | **Twitter / X** | [X API v2 Manage Tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/post-tweets) | Bearer Token / OAuth 2.0 User Context | `POST https://api.twitter.com/2/tweets` | `true` (public tweet) |
-| **Slack** | [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks) | Webhook URL or Bot Token (`xoxb-`) | `POST <webhook_url>` or `POST https://slack.com/api/chat.postMessage` | `false` (private workspace access) |
 
 ---
 
@@ -173,15 +169,6 @@ curl -X POST http://localhost:4000/posting \
       "date": "2026-11-15",
       "time": "12:49:19",
       "error": null
-    },
-    {
-      "platform": "Slack",
-      "status": "success",
-      "posted_url": "https://slack.com/archives/C07DXORA01/p1794727159000100",
-      "public_access": false,
-      "date": "2026-11-15",
-      "time": "12:49:19",
-      "error": null
     }
   ]
 }
@@ -205,8 +192,7 @@ automated-posting/
 │   │   ├── telegram.py            # Telegram Bot API integration
 │   │   ├── discord.py             # Discord Webhook API integration
 │   │   ├── mastodon.py            # Mastodon REST API v1 integration
-│   │   ├── twitter.py             # Twitter / X API v2 integration
-│   │   └── slack.py               # Slack Webhook / Web API integration
+│   │   └── twitter.py             # Twitter / X API v2 integration
 │   └── services/
 │       ├── __init__.py
 │       └── posting_service.py     # Concurrent asyncio orchestrator
@@ -293,11 +279,6 @@ TWITTER_API_KEY=
 TWITTER_API_SECRET=
 TWITTER_ACCESS_TOKEN=
 TWITTER_ACCESS_TOKEN_SECRET=
-
-# Slack Webhook / Web API
-SLACK_WEBHOOK_URL=
-SLACK_BOT_TOKEN=
-SLACK_CHANNEL=
 ```
 
 ---
@@ -319,7 +300,7 @@ The server will be available at:
 
 ## 8. Testing & Code Coverage
 
-The project includes an automated test suite with **33 unit and integration tests** covering input validation, platform adapters, error simulation, and concurrency.
+The project includes an automated test suite with **31 unit and integration tests** covering input validation, platform adapters, error simulation, and concurrency.
 
 ### Run All Tests
 ```bash
@@ -335,32 +316,31 @@ pytest --cov=app tests/
 ```text
 ============================= test session starts =============================
 platform win32 -- Python 3.8.10, pytest-8.2.2
-collected 33 items
+collected 31 items
 
-tests/test_platforms.py .............                                    [ 39%]
-tests/test_posting.py .....                                              [ 54%]
+tests/test_platforms.py ...........                                      [ 35%]
+tests/test_posting.py .....                                              [ 51%]
 tests/test_validation.py ...............                                 [100%]
 
 ---------- coverage: platform win32, python 3.8.10 -----------
 Name                              Stmts   Miss  Cover
 -----------------------------------------------------
 app\__init__.py                       1      0   100%
-app\config.py                        32      0   100%
+app\config.py                        29      0   100%
 app\main.py                          57     12    79%
-app\platforms\__init__.py            12      0   100%
+app\platforms\__init__.py            11      0   100%
 app\platforms\base.py                63      9    86%
-app\platforms\discord.py             35      0   100%
-app\platforms\mastodon.py            31      1    97%
-app\platforms\slack.py               53      6    89%
+app\platforms\discord.py             37      0   100%
+app\platforms\mastodon.py            32      1    97%
 app\platforms\telegram.py            43      1    98%
 app\platforms\twitter.py             33      2    94%
 app\schemas.py                       71      3    96%
 app\services\__init__.py              2      0   100%
 app\services\posting_service.py      32      4    88%
 -----------------------------------------------------
-TOTAL                               465     38    92%
+TOTAL                               411     32    92%
 
-============================= 33 passed in 0.61s ==============================
+============================= 31 passed in 0.65s ==============================
 ```
 
 ---
@@ -369,7 +349,7 @@ TOTAL                               465     38    92%
 
 The publishing pipeline implements the following resilience patterns:
 1. **Asynchronous Non-Blocking I/O**: Driven by `httpx.AsyncClient` inside `asyncio.gather`.
-2. **Independent Failure Boundaries**: If Slack returns an authentication failure or Twitter encounters a rate limit, Telegram, Discord, and Mastodon will still post successfully.
+2. **Independent Failure Boundaries**: If one platform encounters a network issue or rate limit, remaining platforms continue publishing successfully.
 3. **Structured Logging**: Every attempt, success, and error is recorded with ISO timestamps and structured error codes.
 
 ---

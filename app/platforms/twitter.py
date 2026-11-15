@@ -67,3 +67,4 @@ class TwitterPlatform(BasePlatform):
 
         posted_url = f"https://x.com/i/status/{tweet_id}"
         return posted_url, True
+

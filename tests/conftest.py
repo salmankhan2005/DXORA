@@ -19,9 +19,6 @@ def test_settings() -> Settings:
         discord_webhook_url=None,
         mastodon_access_token=None,
         twitter_bearer_token=None,
-        slack_webhook_url=None,
-        slack_bot_token=None,
-        slack_channel=None,
     )
 
 

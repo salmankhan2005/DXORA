@@ -9,7 +9,6 @@ from app.platforms.telegram import TelegramPlatform
 from app.platforms.discord import DiscordPlatform
 from app.platforms.mastodon import MastodonPlatform
 from app.platforms.twitter import TwitterPlatform
-from app.platforms.slack import SlackPlatform
 
 
 def _mock_response(status_code: int = 200, json: dict = None, text: str = None) -> httpx.Response:
@@ -29,9 +28,6 @@ def _clean_settings(**kwargs) -> Settings:
         "discord_webhook_url": None,
         "mastodon_access_token": None,
         "twitter_bearer_token": None,
-        "slack_webhook_url": None,
-        "slack_bot_token": None,
-        "slack_channel": None,
     }
     defaults.update(kwargs)
     return Settings(**defaults)
@@ -205,55 +201,6 @@ async def test_twitter_live_mock():
         assert result.status == "success"
         assert result.posted_url == "https://x.com/i/status/17928371928371"
         assert result.public_access is True
-
-
-@pytest.mark.asyncio
-async def test_slack_webhook_mock():
-    settings = _clean_settings(
-        simulation_mode=False,
-        slack_webhook_url="https://hooks.slack.com/services/T00/B00/XXXXX",
-        slack_channel="C012345",
-    )
-    platform = SlackPlatform(settings)
-    assert platform.is_configured()
-
-    slack_resp = _mock_response(200, text="ok")
-
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
-        mock_post.return_value = slack_resp
-
-        result = await platform.post("Slack post https://example.com", "https://example.com")
-        assert result.status == "success"
-        assert "slack.com/archives" in result.posted_url
-        assert result.public_access is False
-
-
-@pytest.mark.asyncio
-async def test_slack_bot_token_mock():
-    settings = _clean_settings(
-        simulation_mode=False,
-        slack_bot_token="xoxb-mock-bot-token",
-        slack_channel="C998877",
-    )
-    platform = SlackPlatform(settings)
-    assert platform.is_configured()
-
-    post_resp = _mock_response(200, json={"ok": True, "ts": "1731655800.000100"})
-    perm_resp = _mock_response(
-        200,
-        json={"ok": True, "permalink": "https://slack.com/archives/C998877/p1731655800000100"},
-    )
-
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post, patch(
-        "httpx.AsyncClient.get", new_callable=AsyncMock
-    ) as mock_get:
-        mock_post.return_value = post_resp
-        mock_get.return_value = perm_resp
-
-        result = await platform.post("Slack bot post https://example.com", "https://example.com")
-        assert result.status == "success"
-        assert result.posted_url == "https://slack.com/archives/C998877/p1731655800000100"
-        assert result.public_access is False
 
 
 @pytest.mark.asyncio
