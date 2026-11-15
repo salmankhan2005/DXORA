@@ -57,8 +57,10 @@ class DiscordPlatform(BasePlatform):
 
         data = response.json()
         message_id = data.get("id")
-        channel_id = data.get("channel_id") or self.settings.discord_channel_id or "0"
-        guild_id = data.get("guild_id") or self.settings.discord_guild_id or "@me"
+        raw_channel = str(data.get("channel_id") or self.settings.discord_channel_id or "0").strip().rstrip("/")
+        channel_id = raw_channel.split("/")[-1] if "/" in raw_channel else raw_channel
+        raw_guild = str(data.get("guild_id") or self.settings.discord_guild_id or "@me").strip().rstrip("/")
+        guild_id = raw_guild.split("/")[-1] if "/" in raw_guild else raw_guild
 
         posted_url = f"https://discord.com/channels/{guild_id}/{channel_id}/{message_id}"
         return posted_url, self.default_public_access

@@ -54,8 +54,9 @@ class MastodonPlatform(BasePlatform):
         )
         api_url = f"https://{instance}/api/v1/statuses"
 
+        token = self.settings.mastodon_access_token.strip()
         headers = {
-            "Authorization": f"Bearer {self.settings.mastodon_access_token}",
+            "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
         payload = {
