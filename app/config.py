@@ -24,8 +24,6 @@ class Settings(BaseSettings):
     request_timeout_seconds: float = 10.0
 
     # Simulation / Mock Mode
-    # If True, platforms without live credentials generate realistic mock responses
-    # for testing or offline demonstration.
     simulation_mode: bool = False
 
     # 1. Telegram
@@ -43,22 +41,14 @@ class Settings(BaseSettings):
     mastodon_instance_url: str = "mastodon.social"
     mastodon_access_token: Optional[str] = None
 
-    # 4. Reddit
-    reddit_client_id: Optional[str] = None
-    reddit_client_secret: Optional[str] = None
-    reddit_username: Optional[str] = None
-    reddit_password: Optional[str] = None
-    reddit_subreddit: str = "test"
-    reddit_user_agent: str = "DxoraAutomatedPoster/1.0"
-
-    # 5. Twitter / X
+    # 4. Twitter / X
     twitter_bearer_token: Optional[str] = None
     twitter_api_key: Optional[str] = None
     twitter_api_secret: Optional[str] = None
     twitter_access_token: Optional[str] = None
     twitter_access_token_secret: Optional[str] = None
 
-    # 6. Slack
+    # 5. Slack
     slack_webhook_url: Optional[str] = None
     slack_bot_token: Optional[str] = None
     slack_channel: Optional[str] = None

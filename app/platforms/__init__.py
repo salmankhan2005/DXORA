@@ -6,7 +6,6 @@ from app.platforms.base import BasePlatform
 from app.platforms.telegram import TelegramPlatform
 from app.platforms.discord import DiscordPlatform
 from app.platforms.mastodon import MastodonPlatform
-from app.platforms.reddit import RedditPlatform
 from app.platforms.twitter import TwitterPlatform
 from app.platforms.slack import SlackPlatform
 
@@ -14,7 +13,6 @@ ALL_PLATFORMS: List[Type[BasePlatform]] = [
     TelegramPlatform,
     DiscordPlatform,
     MastodonPlatform,
-    RedditPlatform,
     TwitterPlatform,
     SlackPlatform,
 ]
@@ -30,7 +28,6 @@ __all__ = [
     "TelegramPlatform",
     "DiscordPlatform",
     "MastodonPlatform",
-    "RedditPlatform",
     "TwitterPlatform",
     "SlackPlatform",
     "ALL_PLATFORMS",

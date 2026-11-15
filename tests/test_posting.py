@@ -62,7 +62,7 @@ def test_posting_endpoint_default_unconfigured():
 
 def test_posting_endpoint_simulation_mode():
     """In simulation mode, all platforms generate mock successful posts."""
-    sim_settings = Settings(simulation_mode=True)
+    sim_settings = Settings(_env_file=None, simulation_mode=True)
     sim_service = PostingService(settings=sim_settings)
 
     # Override dependency in FastAPI

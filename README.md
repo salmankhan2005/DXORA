@@ -3,7 +3,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![Pydantic v2](https://img.shields.io/badge/Pydantic-2.5.3-E92063.svg)](https://docs.pydantic.dev/)
-[![Tests](https://img.shields.io/badge/tests-35%20passed%20%7C%2093%25%20coverage-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-33%20passed%20%7C%2092%25%20coverage-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 
 A high-performance, asynchronous Python service built with **FastAPI** that automatically publishes short promotional and marketing messages across multiple third-party social networks, messaging portals, and developer communities via their official REST APIs.
@@ -42,24 +42,21 @@ flowchart TD
         Service -->|asyncio.gather| P1[TelegramPlatform]
         Service -->|asyncio.gather| P2[DiscordPlatform]
         Service -->|asyncio.gather| P3[MastodonPlatform]
-        Service -->|asyncio.gather| P4[RedditPlatform]
-        Service -->|asyncio.gather| P5[Twitter / X Platform]
-        Service -->|asyncio.gather| P6[SlackPlatform]
+        Service -->|asyncio.gather| P4[Twitter / X Platform]
+        Service -->|asyncio.gather| P5[SlackPlatform]
     end
 
     P1 -->|POST /sendMessage| TelegramAPI[(Telegram Bot API)]
     P2 -->|POST /webhooks| DiscordAPI[(Discord Webhook API)]
     P3 -->|POST /api/v1/statuses| MastodonAPI[(Mastodon REST API)]
-    P4 -->|POST /api/submit| RedditAPI[(Reddit OAuth2 API)]
-    P5 -->|POST /2/tweets| TwitterAPI[(Twitter / X API v2)]
-    P6 -->|POST /chat.postMessage| SlackAPI[(Slack Webhook / Web API)]
+    P4 -->|POST /2/tweets| TwitterAPI[(Twitter / X API v2)]
+    P5 -->|POST /chat.postMessage| SlackAPI[(Slack Webhook / Web API)]
 
     P1 -.-> Aggregator[Results Aggregator]
     P2 -.-> Aggregator
     P3 -.-> Aggregator
     P4 -.-> Aggregator
     P5 -.-> Aggregator
-    P6 -.-> Aggregator
 
     Aggregator -->|PostingResponse JSON| Client
 ```
@@ -73,14 +70,13 @@ flowchart TD
 
 ## 2. Platform Research & API Integrations
 
-We researched and integrated **6 major third-party platforms** exceeding the requirement of 5:
+The service integrates **5 major third-party platforms**:
 
 | Platform | Official API Documentation | Authentication Method | Endpoint Used | Public Access |
 |---|---|---|---|---|
 | **Telegram** | [Telegram Bot API](https://core.telegram.org/bots/api#sendmessage) | Bot Token (`bot<TOKEN>`) | `POST https://api.telegram.org/bot<TOKEN>/sendMessage` | `true` (if channel username configured), `false` (if private chat) |
 | **Discord** | [Discord Webhook Docs](https://discord.com/developers/docs/resources/webhook#execute-webhook) | Webhook URL Token | `POST https://discord.com/api/webhooks/<id>/<token>?wait=true` | `false` (internal channel permissions) |
 | **Mastodon** | [Mastodon API v1](https://docs.joinmastodon.org/methods/statuses/#create) | Bearer Token (OAuth2) | `POST https://<instance>/api/v1/statuses` | `true` (public federated timeline) |
-| **Reddit** | [Reddit OAuth2 Submit API](https://www.reddit.com/dev/api/#POST_api_submit) | Script App OAuth2 (Client ID + Secret + User Token) | `POST https://oauth.reddit.com/api/submit` | `true` (public subreddit post) |
 | **Twitter / X** | [X API v2 Manage Tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/post-tweets) | Bearer Token / OAuth 2.0 User Context | `POST https://api.twitter.com/2/tweets` | `true` (public tweet) |
 | **Slack** | [Slack Incoming Webhooks](https://api.slack.com/messaging/webhooks) | Webhook URL or Bot Token (`xoxb-`) | `POST <webhook_url>` or `POST https://slack.com/api/chat.postMessage` | `false` (private workspace access) |
 
@@ -113,7 +109,6 @@ The input is validated using strict Pydantic v2 schemas:
 4. **Internal Platform Selection**: Platform selection is handled strictly internally; extra payload fields (e.g. `platforms`) are forbidden and rejected with HTTP 422.
 
 #### Example Validation Error Response (HTTP 422)
-When submitting a message without a link or with invalid parameters:
 ```json
 {
   "success": false,
@@ -171,15 +166,6 @@ curl -X POST http://localhost:4000/posting \
       "error": null
     },
     {
-      "platform": "Reddit",
-      "status": "success",
-      "posted_url": "https://www.reddit.com/r/test/comments/6af95cf7/dxora_announcement/",
-      "public_access": true,
-      "date": "2026-11-15",
-      "time": "12:49:19",
-      "error": null
-    },
-    {
       "platform": "Twitter / X",
       "status": "success",
       "posted_url": "https://x.com/dxora_official/status/1800000001794727159",
@@ -196,34 +182,6 @@ curl -X POST http://localhost:4000/posting \
       "date": "2026-11-15",
       "time": "12:49:19",
       "error": null
-    }
-  ]
-}
-```
-
-#### Response (When specific credentials are unconfigured or fail)
-If credentials for a platform are missing or invalid, the system isolates the failure and continues with the others:
-```json
-{
-  "success": false,
-  "results": [
-    {
-      "platform": "Telegram",
-      "status": "failed",
-      "posted_url": null,
-      "public_access": false,
-      "date": null,
-      "time": null,
-      "error": "Authentication failed: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be configured in environment"
-    },
-    {
-      "platform": "Discord",
-      "status": "failed",
-      "posted_url": null,
-      "public_access": false,
-      "date": null,
-      "time": null,
-      "error": "Authentication failed: DISCORD_WEBHOOK_URL must be configured in environment"
     }
   ]
 }
@@ -247,7 +205,6 @@ automated-posting/
 │   │   ├── telegram.py            # Telegram Bot API integration
 │   │   ├── discord.py             # Discord Webhook API integration
 │   │   ├── mastodon.py            # Mastodon REST API v1 integration
-│   │   ├── reddit.py              # Reddit OAuth2 submit API integration
 │   │   ├── twitter.py             # Twitter / X API v2 integration
 │   │   └── slack.py               # Slack Webhook / Web API integration
 │   └── services/
@@ -283,14 +240,7 @@ cd automated-posting
 ```
 
 ### 2. Create and Activate a Virtual Environment
-**On Linux / macOS:**
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-**On Windows:**
-```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
@@ -337,15 +287,12 @@ DISCORD_PUBLIC_ACCESS=false
 MASTODON_INSTANCE_URL=mastodon.social
 MASTODON_ACCESS_TOKEN=
 
-# Reddit OAuth API
-REDDIT_CLIENT_ID=
-REDDIT_CLIENT_SECRET=
-REDDIT_USERNAME=
-REDDIT_PASSWORD=
-REDDIT_SUBREDDIT=test
-
 # Twitter / X API v2
 TWITTER_BEARER_TOKEN=
+TWITTER_API_KEY=
+TWITTER_API_SECRET=
+TWITTER_ACCESS_TOKEN=
+TWITTER_ACCESS_TOKEN_SECRET=
 
 # Slack Webhook / Web API
 SLACK_WEBHOOK_URL=
@@ -372,7 +319,7 @@ The server will be available at:
 
 ## 8. Testing & Code Coverage
 
-The project includes an automated test suite with **35 unit and integration tests** covering input validation, platform adapters, error simulation, and concurrency.
+The project includes an automated test suite with **33 unit and integration tests** covering input validation, platform adapters, error simulation, and concurrency.
 
 ### Run All Tests
 ```bash
@@ -388,33 +335,32 @@ pytest --cov=app tests/
 ```text
 ============================= test session starts =============================
 platform win32 -- Python 3.8.10, pytest-8.2.2
-collected 35 items
+collected 33 items
 
-tests/test_platforms.py ...............                                  [ 42%]
-tests/test_posting.py .....                                              [ 57%]
+tests/test_platforms.py .............                                    [ 39%]
+tests/test_posting.py .....                                              [ 54%]
 tests/test_validation.py ...............                                 [100%]
 
 ---------- coverage: platform win32, python 3.8.10 -----------
 Name                              Stmts   Miss  Cover
 -----------------------------------------------------
 app\__init__.py                       1      0   100%
-app\config.py                        38      0   100%
+app\config.py                        32      0   100%
 app\main.py                          57     12    79%
-app\platforms\__init__.py            13      0   100%
+app\platforms\__init__.py            12      0   100%
 app\platforms\base.py                63      9    86%
 app\platforms\discord.py             35      0   100%
-app\platforms\mastodon.py            31      0   100%
-app\platforms\reddit.py              49      3    94%
+app\platforms\mastodon.py            31      1    97%
 app\platforms\slack.py               53      6    89%
 app\platforms\telegram.py            43      1    98%
-app\platforms\twitter.py             33      1    97%
+app\platforms\twitter.py             33      2    94%
 app\schemas.py                       71      3    96%
 app\services\__init__.py              2      0   100%
 app\services\posting_service.py      32      4    88%
 -----------------------------------------------------
-TOTAL                               521     39    93%
+TOTAL                               465     38    92%
 
-============================= 35 passed in 1.49s ==============================
+============================= 33 passed in 0.61s ==============================
 ```
 
 ---
@@ -423,7 +369,7 @@ TOTAL                               521     39    93%
 
 The publishing pipeline implements the following resilience patterns:
 1. **Asynchronous Non-Blocking I/O**: Driven by `httpx.AsyncClient` inside `asyncio.gather`.
-2. **Independent Failure Boundaries**: If Reddit encounters a rate limit or Slack returns an authentication failure, Telegram, Discord, and Mastodon will still post successfully.
+2. **Independent Failure Boundaries**: If Slack returns an authentication failure or Twitter encounters a rate limit, Telegram, Discord, and Mastodon will still post successfully.
 3. **Structured Logging**: Every attempt, success, and error is recorded with ISO timestamps and structured error codes.
 
 ---

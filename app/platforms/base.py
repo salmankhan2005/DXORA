@@ -59,7 +59,7 @@ class BasePlatform(ABC):
         """Generates a realistic simulated post result for testing/offline evaluation."""
         now = datetime.now()
         fake_id = int(now.timestamp()) % 1000000 + 100000
-        simulated_url = f"https://example.com/{self.name.lower().replace(' ', '')}/post/{fake_id}"
+        simulated_url = f"https://example.com/{self.name.lower().replace(' ', '').replace('/', '')}/post/{fake_id}"
         return PlatformResult(
             platform=self.name,
             status="success",
@@ -79,15 +79,16 @@ class BasePlatform(ABC):
         date_str = now.strftime("%Y-%m-%d")
         time_str = now.strftime("%H:%M:%S")
 
-        # 1. Check configuration
-        if not self.is_configured():
-            if self.settings.simulation_mode:
-                logger.info(
-                    "[%s] Operating in SIMULATION_MODE; generating simulated success response.",
-                    self.name,
-                )
-                return self._simulate_post(message, cta_url)
+        # 1. Simulation mode check: allows offline testing without hitting third-party APIs
+        if self.settings.simulation_mode:
+            logger.info(
+                "[%s] Operating in SIMULATION_MODE; generating simulated success response.",
+                self.name,
+            )
+            return self._simulate_post(message, cta_url)
 
+        # 2. Check configuration / credentials
+        if not self.is_configured():
             logger.warning("[%s] Missing configuration / credentials.", self.name)
             return PlatformResult(
                 platform=self.name,
@@ -99,7 +100,7 @@ class BasePlatform(ABC):
                 error=self.configuration_error_message(),
             )
 
-        # 2. Execute live HTTP publishing
+        # 3. Execute live HTTP publishing
         try:
             timeout = httpx.Timeout(self.settings.request_timeout_seconds)
             async with httpx.AsyncClient(timeout=timeout) as client:
