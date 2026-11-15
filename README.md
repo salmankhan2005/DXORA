@@ -34,23 +34,23 @@ The system is designed with an extensible **Adapter / Strategy Pattern**. Every 
 
 ```mermaid
 flowchart TD
-    Client[Client / Caller] -->|POST /posting| Router[FastAPI Router]
-    Router -->|Validate Payload| Schemas[Pydantic Validation<br/><= 200 chars, exactly 1 CTA link]
-    Schemas -->|Validated Message + CTA| Service[PostingService]
+    Client["Client / Caller"] -->|POST /posting| Router["FastAPI Router"]
+    Router -->|Validate Payload| Schemas["Pydantic Validation - Max 200 chars, 1 CTA Link"]
+    Schemas -->|Validated Message + CTA| Service["PostingService"]
     
-    subgraph Concurrency[Concurrent Async Execution (Fault Isolated)]
-        Service -->|asyncio.gather| P1[TelegramPlatform]
-        Service -->|asyncio.gather| P2[DiscordPlatform]
-        Service -->|asyncio.gather| P3[MastodonPlatform]
-        Service -->|asyncio.gather| P4[Twitter / X Platform]
+    subgraph Concurrency ["Concurrent Async Execution - Fault Isolated"]
+        Service -->|asyncio.gather| P1["TelegramPlatform"]
+        Service -->|asyncio.gather| P2["DiscordPlatform"]
+        Service -->|asyncio.gather| P3["MastodonPlatform"]
+        Service -->|asyncio.gather| P4["TwitterPlatform"]
     end
 
-    P1 -->|POST /sendMessage| TelegramAPI[(Telegram Bot API)]
-    P2 -->|POST /webhooks| DiscordAPI[(Discord Webhook API)]
-    P3 -->|POST /api/v1/statuses| MastodonAPI[(Mastodon REST API)]
-    P4 -->|POST /2/tweets| TwitterAPI[(Twitter / X API v2)]
+    P1 -->|POST /sendMessage| TelegramAPI[("Telegram Bot API")]
+    P2 -->|POST /webhooks| DiscordAPI[("Discord Webhook API")]
+    P3 -->|POST /api/v1/statuses| MastodonAPI[("Mastodon REST API")]
+    P4 -->|POST /2/tweets| TwitterAPI[("Twitter / X API v2")]
 
-    P1 -.-> Aggregator[Results Aggregator]
+    P1 -.-> Aggregator["Results Aggregator"]
     P2 -.-> Aggregator
     P3 -.-> Aggregator
     P4 -.-> Aggregator
@@ -100,7 +100,7 @@ Content-Type: application/json
 
 The input is validated using strict Pydantic v2 schemas:
 1. **Character Limit**: Total message length must **not exceed 200 characters**.
-2. **CTA Link Presence & Uniqueness**: Message must contain **exactly one CTA link** (0 links or $\ge 2$ links triggers validation failure).
+2. **CTA Link Presence & Uniqueness**: Message must contain **exactly one CTA link** (0 links or 2 or more links triggers validation failure).
 3. **URL Format & Domain Verification**: The link must use `http://` or `https://` protocol with an RFC-compliant domain name or localhost.
 4. **Internal Platform Selection**: Platform selection is handled strictly internally; extra payload fields (e.g. `platforms`) are forbidden and rejected with HTTP 422.
 
